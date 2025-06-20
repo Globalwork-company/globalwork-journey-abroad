@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Clock, DollarSign, Users, Flag } from 'lucide-react';
+import { MapPin, Clock, DollarSign, Flag } from 'lucide-react';
 
 const FeaturedJobs = () => {
   const jobs = [
@@ -13,7 +13,6 @@ const FeaturedJobs = () => {
       location: "Ontario, Canada",
       salary: "CAD 18/hour",
       duration: "2-Year Contract",
-      fee: "$30",
       country: "🇨🇦",
       benefits: ["Housing Provided", "Health Insurance", "Visa Support"],
       urgent: true
@@ -25,7 +24,6 @@ const FeaturedJobs = () => {
       location: "Toronto, Canada",
       salary: "CAD 2,800/month",
       duration: "Permanent",
-      fee: "$40",
       country: "🇨🇦",
       benefits: ["Free Accommodation", "Family Benefits", "Path to PR"]
     },
@@ -36,7 +34,6 @@ const FeaturedJobs = () => {
       location: "Texas, USA",
       salary: "USD 15/hour",
       duration: "1-Year Contract",
-      fee: "$35",
       country: "🇺🇸",
       benefits: ["Health Coverage", "Overtime Pay", "Training Provided"]
     },
@@ -47,7 +44,6 @@ const FeaturedJobs = () => {
       location: "Florida, USA",
       salary: "USD 14/hour + Tips",
       duration: "Seasonal (6 months)",
-      fee: "$30",
       country: "🇺🇸",
       benefits: ["Staff Housing", "Meal Allowance", "Tips Included"],
       urgent: true
@@ -120,11 +116,7 @@ const FeaturedJobs = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center">
-                  <div className="text-sm">
-                    <span className="text-gray-600">Application Fee: </span>
-                    <span className="font-bold text-teal-600">{job.fee}</span>
-                  </div>
+                <div className="flex justify-end">
                   <Button className="bg-blue-900 hover:bg-blue-800">
                     Apply Now
                   </Button>

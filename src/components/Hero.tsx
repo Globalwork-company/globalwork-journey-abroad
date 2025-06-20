@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Search, CheckCircle, Users, Shield } from 'lucide-react';
+import { CheckCircle, Users, Shield } from 'lucide-react';
 
 const Hero = () => {
   return (
@@ -44,8 +44,8 @@ const Hero = () => {
             <div className="flex items-center justify-center space-x-3 bg-white/10 backdrop-blur-sm rounded-lg p-4">
               <Users className="h-8 w-8 text-teal-300" />
               <div className="text-left">
-                <div className="font-semibold">2,000+ Success</div>
-                <div className="text-sm text-blue-200">Happy workers abroad</div>
+                <div className="font-semibold">5,000+ Success</div>
+                <div className="text-sm text-blue-200">Happy workers worldwide</div>
               </div>
             </div>
           </div>
