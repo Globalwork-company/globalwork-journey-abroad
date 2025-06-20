@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -9,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, FileText, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import emailjs from '@emailjs/browser';
 
 const Apply = () => {
   const [searchParams] = useSearchParams();
@@ -58,113 +56,13 @@ const Apply = () => {
     }));
   };
 
-  const sendEmailNotification = async (applicationData: any) => {
-    try {
-      // Initialize EmailJS (you'll need to replace these with your actual EmailJS credentials)
-      emailjs.init("YOUR_PUBLIC_KEY"); // Replace with your EmailJS public key
-      
-      const templateParams = {
-        to_email: 'globalworkpass@gmail.com',
-        from_name: `${applicationData.personalInfo.firstName} ${applicationData.personalInfo.lastName}`,
-        applicant_name: `${applicationData.personalInfo.firstName} ${applicationData.personalInfo.lastName}`,
-        applicant_email: applicationData.personalInfo.email,
-        applicant_phone: applicationData.personalInfo.phone,
-        date_of_birth: applicationData.personalInfo.dateOfBirth,
-        nationality: applicationData.personalInfo.nationality,
-        current_location: applicationData.personalInfo.currentLocation,
-        previous_jobs: applicationData.experience.previousJobs,
-        skills: applicationData.experience.skills,
-        languages: applicationData.experience.languages,
-        work_preference: applicationData.experience.workPreference,
-        documents_cv: applicationData.documents.cv ? 'Yes' : 'No',
-        documents_passport: applicationData.documents.passport ? 'Yes' : 'No',
-        documents_id: applicationData.documents.id ? 'Yes' : 'No',
-        documents_education: applicationData.documents.education ? 'Yes' : 'No',
-        job_id: jobId || 'Not specified',
-        application_date: new Date().toLocaleString(),
-        message: `
-New Job Application Received - GlobalWork Pass
-
-Personal Information:
-- Name: ${applicationData.personalInfo.firstName} ${applicationData.personalInfo.lastName}
-- Email: ${applicationData.personalInfo.email}
-- Phone: ${applicationData.personalInfo.phone}
-- Date of Birth: ${applicationData.personalInfo.dateOfBirth}
-- Nationality: ${applicationData.personalInfo.nationality}
-- Current Location: ${applicationData.personalInfo.currentLocation}
-
-Experience & Skills:
-- Previous Jobs: ${applicationData.experience.previousJobs}
-- Skills: ${applicationData.experience.skills}
-- Languages: ${applicationData.experience.languages}
-- Work Preference: ${applicationData.experience.workPreference}
-
-Documents Uploaded:
-- CV/Resume: ${applicationData.documents.cv ? 'Yes' : 'No'}
-- Passport: ${applicationData.documents.passport ? 'Yes' : 'No'}
-- National ID: ${applicationData.documents.id ? 'Yes' : 'No'}
-- Education Certificates: ${applicationData.documents.education ? 'Yes' : 'No'}
-
-Job ID: ${jobId || 'Not specified'}
-Application Date: ${new Date().toLocaleString()}
-        `
-      };
-
-      const result = await emailjs.send(
-        'YOUR_SERVICE_ID', // Replace with your EmailJS service ID
-        'YOUR_TEMPLATE_ID', // Replace with your EmailJS template ID
-        templateParams
-      );
-
-      console.log('Email sent successfully:', result);
-      
-      toast({
-        title: "Application Submitted Successfully!",
-        description: "Your application has been sent to our team. We'll contact you within 2-3 business days.",
-      });
-
-      return true;
-    } catch (error) {
-      console.error('Failed to send email:', error);
-      
-      // Fallback: Create mailto link with application details
-      const emailBody = `
-New Job Application - GlobalWork Pass
-
-Personal Information:
-- Name: ${applicationData.personalInfo.firstName} ${applicationData.personalInfo.lastName}
-- Email: ${applicationData.personalInfo.email}
-- Phone: ${applicationData.personalInfo.phone}
-- Date of Birth: ${applicationData.personalInfo.dateOfBirth}
-- Nationality: ${applicationData.personalInfo.nationality}
-- Current Location: ${applicationData.personalInfo.currentLocation}
-
-Experience & Skills:
-- Previous Jobs: ${applicationData.experience.previousJobs}
-- Skills: ${applicationData.experience.skills}
-- Languages: ${applicationData.experience.languages}
-- Work Preference: ${applicationData.experience.workPreference}
-
-Documents Status:
-- CV/Resume: ${applicationData.documents.cv ? 'Uploaded' : 'Not uploaded'}
-- Passport: ${applicationData.documents.passport ? 'Uploaded' : 'Not uploaded'}
-- National ID: ${applicationData.documents.id ? 'Uploaded' : 'Not uploaded'}
-- Education Certificates: ${applicationData.documents.education ? 'Uploaded' : 'Not uploaded'}
-
-Job ID: ${jobId || 'Not specified'}
-Application Date: ${new Date().toLocaleString()}
-      `;
-
-      const mailtoLink = `mailto:globalworkpass@gmail.com?subject=Job Application - ${applicationData.personalInfo.firstName} ${applicationData.personalInfo.lastName}&body=${encodeURIComponent(emailBody)}`;
-      window.open(mailtoLink, '_blank');
-      
-      toast({
-        title: "Email Client Opened",
-        description: "Please send the email from your email client to complete your application.",
-      });
-
-      return true;
-    }
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -172,42 +70,116 @@ Application Date: ${new Date().toLocaleString()}
     setIsSubmitting(true);
 
     try {
-      const success = await sendEmailNotification(formData);
+      // Create comprehensive email body with all application details
+      const applicationDate = new Date().toLocaleString();
+      const applicantName = `${formData.personalInfo.firstName} ${formData.personalInfo.lastName}`;
       
-      if (success) {
-        // Reset form
-        setFormData({
-          personalInfo: {
-            firstName: '',
-            lastName: '',
-            email: '',
-            phone: '',
-            dateOfBirth: '',
-            nationality: '',
-            currentLocation: ''
-          },
-          documents: {
-            cv: null,
-            passport: null,
-            id: null,
-            education: null
-          },
-          experience: {
-            previousJobs: '',
-            skills: '',
-            languages: '',
-            workPreference: ''
-          }
-        });
-        
-        // Reset to first step
-        setCurrentStep(1);
-      }
+      // Prepare file information
+      const fileInfo = {
+        cv: formData.documents.cv ? `${formData.documents.cv.name} (${(formData.documents.cv.size / 1024).toFixed(2)} KB)` : 'Not uploaded',
+        passport: formData.documents.passport ? `${formData.documents.passport.name} (${(formData.documents.passport.size / 1024).toFixed(2)} KB)` : 'Not uploaded',
+        id: formData.documents.id ? `${formData.documents.id.name} (${(formData.documents.id.size / 1024).toFixed(2)} KB)` : 'Not uploaded',
+        education: formData.documents.education ? `${formData.documents.education.name} (${(formData.documents.education.size / 1024).toFixed(2)} KB)` : 'Not uploaded'
+      };
+
+      const emailSubject = `New Job Application - ${applicantName} (Job ID: ${jobId || 'N/A'})`;
       
+      const emailBody = `
+NEW JOB APPLICATION - GLOBALWORK PASS
+=====================================
+
+APPLICATION DETAILS:
+- Job ID: ${jobId || 'Not specified'}
+- Application Date: ${applicationDate}
+- Applicant: ${applicantName}
+
+PERSONAL INFORMATION:
+- Name: ${applicantName}
+- Email: ${formData.personalInfo.email}
+- Phone: ${formData.personalInfo.phone}
+- Date of Birth: ${formData.personalInfo.dateOfBirth}
+- Nationality: ${formData.personalInfo.nationality}
+- Current Location: ${formData.personalInfo.currentLocation}
+
+EXPERIENCE & SKILLS:
+- Previous Jobs: ${formData.experience.previousJobs || 'Not provided'}
+- Skills: ${formData.experience.skills || 'Not provided'}
+- Languages: ${formData.experience.languages || 'Not provided'}
+- Work Preference: ${formData.experience.workPreference || 'Not specified'}
+
+DOCUMENTS SUBMITTED:
+- CV/Resume: ${fileInfo.cv}
+- Passport Copy: ${fileInfo.passport}
+- National ID: ${fileInfo.id}
+- Education Certificates: ${fileInfo.education}
+
+NEXT STEPS:
+Please review this application and contact the applicant at ${formData.personalInfo.email} if suitable for the position.
+
+---
+This application was submitted through GlobalWork Pass website.
+For questions, contact: globalworkpass@gmail.com
+      `;
+
+      // Create mailto link with all the details
+      const mailtoLink = `mailto:globalworkpass@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+      
+      // Open the user's email client
+      window.open(mailtoLink, '_blank');
+      
+      // Show success message
+      toast({
+        title: "Application Submitted Successfully!",
+        description: "Your email client has opened with the application details. Please send the email to complete your application.",
+      });
+
+      // Log application details to console for debugging
+      console.log('Application submitted:', {
+        personalInfo: formData.personalInfo,
+        experience: formData.experience,
+        documents: {
+          cv: formData.documents.cv?.name || 'Not uploaded',
+          passport: formData.documents.passport?.name || 'Not uploaded',
+          id: formData.documents.id?.name || 'Not uploaded',
+          education: formData.documents.education?.name || 'Not uploaded'
+        },
+        jobId,
+        submissionDate: applicationDate
+      });
+
+      // Reset form after submission
+      setFormData({
+        personalInfo: {
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
+          dateOfBirth: '',
+          nationality: '',
+          currentLocation: ''
+        },
+        documents: {
+          cv: null,
+          passport: null,
+          id: null,
+          education: null
+        },
+        experience: {
+          previousJobs: '',
+          skills: '',
+          languages: '',
+          workPreference: ''
+        }
+      });
+      
+      // Reset to first step
+      setCurrentStep(1);
+
     } catch (error) {
+      console.error('Error processing application:', error);
       toast({
         title: "Error",
-        description: "There was an error submitting your application. Please try again.",
+        description: "There was an error processing your application. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -282,273 +254,281 @@ Application Date: ${new Date().toLocaleString()}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              {currentStep === 1 && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input
-                        id="firstName"
-                        required
-                        value={formData.personalInfo.firstName}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          personalInfo: { ...prev.personalInfo, firstName: e.target.value }
-                        }))}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input
-                        id="lastName"
-                        required
-                        value={formData.personalInfo.lastName}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          personalInfo: { ...prev.personalInfo, lastName: e.target.value }
-                        }))}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="email">Email Address</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        required
-                        value={formData.personalInfo.email}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          personalInfo: { ...prev.personalInfo, email: e.target.value }
-                        }))}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        required
-                        value={formData.personalInfo.phone}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          personalInfo: { ...prev.personalInfo, phone: e.target.value }
-                        }))}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                      <Input
-                        id="dateOfBirth"
-                        type="date"
-                        required
-                        value={formData.personalInfo.dateOfBirth}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          personalInfo: { ...prev.personalInfo, dateOfBirth: e.target.value }
-                        }))}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="nationality">Nationality</Label>
-                      <Input
-                        id="nationality"
-                        required
-                        value={formData.personalInfo.nationality}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          personalInfo: { ...prev.personalInfo, nationality: e.target.value }
-                        }))}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="currentLocation">Current Location</Label>
-                      <Input
-                        id="currentLocation"
-                        required
-                        value={formData.personalInfo.currentLocation}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          personalInfo: { ...prev.personalInfo, currentLocation: e.target.value }
-                        }))}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {currentStep === 2 && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {[
-                      { key: 'cv', label: 'CV/Resume', required: true },
-                      { key: 'passport', label: 'Passport Copy', required: true },
-                      { key: 'id', label: 'National ID', required: true },
-                      { key: 'education', label: 'Education Certificates', required: false }
-                    ].map((doc) => (
-                      <div key={doc.key} className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                        <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                        <div className="text-sm text-gray-600 mb-2">
-                          {doc.label} {doc.required && <span className="text-red-500">*</span>}
-                        </div>
-                        <input
-                          type="file"
-                          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                          onChange={(e) => handleFileUpload(doc.key, e.target.files?.[0] || null)}
-                          className="hidden"
-                          id={`file-${doc.key}`}
+              {
+                currentStep === 1 && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="firstName">First Name</Label>
+                        <Input
+                          id="firstName"
+                          required
+                          value={formData.personalInfo.firstName}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            personalInfo: { ...prev.personalInfo, firstName: e.target.value }
+                          }))}
                         />
-                        <label
-                          htmlFor={`file-${doc.key}`}
-                          className="cursor-pointer bg-blue-50 text-blue-600 px-4 py-2 rounded-md text-sm hover:bg-blue-100 transition-colors"
-                        >
-                          Choose File
-                        </label>
-                        {formData.documents[doc.key as keyof typeof formData.documents] && (
-                          <div className="mt-2 text-sm text-green-600 flex items-center justify-center">
-                            <FileText className="h-4 w-4 mr-1" />
-                            File uploaded
+                      </div>
+                      <div>
+                        <Label htmlFor="lastName">Last Name</Label>
+                        <Input
+                          id="lastName"
+                          required
+                          value={formData.personalInfo.lastName}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            personalInfo: { ...prev.personalInfo, lastName: e.target.value }
+                          }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          required
+                          value={formData.personalInfo.email}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            personalInfo: { ...prev.personalInfo, email: e.target.value }
+                          }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          required
+                          value={formData.personalInfo.phone}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            personalInfo: { ...prev.personalInfo, phone: e.target.value }
+                          }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                        <Input
+                          id="dateOfBirth"
+                          type="date"
+                          required
+                          value={formData.personalInfo.dateOfBirth}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            personalInfo: { ...prev.personalInfo, dateOfBirth: e.target.value }
+                          }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="nationality">Nationality</Label>
+                        <Input
+                          id="nationality"
+                          required
+                          value={formData.personalInfo.nationality}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            personalInfo: { ...prev.personalInfo, nationality: e.target.value }
+                          }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="currentLocation">Current Location</Label>
+                        <Input
+                          id="currentLocation"
+                          required
+                          value={formData.personalInfo.currentLocation}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            personalInfo: { ...prev.personalInfo, currentLocation: e.target.value }
+                          }))}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )
+              }
+
+              {
+                currentStep === 2 && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {[
+                        { key: 'cv', label: 'CV/Resume', required: true },
+                        { key: 'passport', label: 'Passport Copy', required: true },
+                        { key: 'id', label: 'National ID', required: true },
+                        { key: 'education', label: 'Education Certificates', required: false }
+                      ].map((doc) => (
+                        <div key={doc.key} className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                          <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                          <div className="text-sm text-gray-600 mb-2">
+                            {doc.label} {doc.required && <span className="text-red-500">*</span>}
                           </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-2">Document Requirements:</h4>
-                    <ul className="text-sm text-blue-800 space-y-1">
-                      <li>• All documents must be clear and readable</li>
-                      <li>• Accepted formats: PDF, JPG, PNG, DOC, DOCX</li>
-                      <li>• Maximum file size: 5MB per document</li>
-                      <li>• Documents should be in English or officially translated</li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-
-              {currentStep === 3 && (
-                <div className="space-y-6">
-                  <div>
-                    <Label htmlFor="previousJobs">Previous Work Experience</Label>
-                    <textarea
-                      id="previousJobs"
-                      rows={4}
-                      className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md"
-                      placeholder="Describe your previous work experience..."
-                      value={formData.experience.previousJobs}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        experience: { ...prev.experience, previousJobs: e.target.value }
-                      }))}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="skills">Skills & Qualifications</Label>
-                    <textarea
-                      id="skills"
-                      rows={3}
-                      className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md"
-                      placeholder="List your relevant skills and qualifications..."
-                      value={formData.experience.skills}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        experience: { ...prev.experience, skills: e.target.value }
-                      }))}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="languages">Languages Spoken</Label>
-                      <Input
-                        id="languages"
-                        placeholder="e.g., English (Fluent), French (Basic)"
-                        value={formData.experience.languages}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          experience: { ...prev.experience, languages: e.target.value }
-                        }))}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="workPreference">Preferred Work Location</Label>
-                      <select
-                        id="workPreference"
-                        className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md"
-                        value={formData.experience.workPreference}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          experience: { ...prev.experience, workPreference: e.target.value }
-                        }))}
-                      >
-                        <option value="">Select preference</option>
-                        <option value="canada">Canada</option>
-                        <option value="usa">USA</option>
-                        <option value="both">Both Canada and USA</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {currentStep === 4 && (
-                <div className="space-y-6">
-                  <div className="bg-green-50 p-6 rounded-lg">
-                    <h3 className="font-semibold text-green-900 mb-4">Application Summary</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <strong>Name:</strong> {formData.personalInfo.firstName} {formData.personalInfo.lastName}
-                      </div>
-                      <div>
-                        <strong>Email:</strong> {formData.personalInfo.email}
-                      </div>
-                      <div>
-                        <strong>Phone:</strong> {formData.personalInfo.phone}
-                      </div>
-                      <div>
-                        <strong>Nationality:</strong> {formData.personalInfo.nationality}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-medium mb-3">Documents Uploaded:</h4>
-                    <div className="space-y-2 text-sm">
-                      {Object.entries(formData.documents).map(([key, file]) => (
-                        <div key={key} className="flex items-center">
-                          <CheckCircle className={`h-4 w-4 mr-2 ${file ? 'text-green-500' : 'text-gray-300'}`} />
-                          <span className={file ? 'text-gray-900' : 'text-gray-500'}>
-                            {key.toUpperCase()}: {file ? 'Uploaded' : 'Not uploaded'}
-                          </span>
+                          <input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                            onChange={(e) => handleFileUpload(doc.key, e.target.files?.[0] || null)}
+                            className="hidden"
+                            id={`file-${doc.key}`}
+                          />
+                          <label
+                            htmlFor={`file-${doc.key}`}
+                            className="cursor-pointer bg-blue-50 text-blue-600 px-4 py-2 rounded-md text-sm hover:bg-blue-100 transition-colors"
+                          >
+                            Choose File
+                          </label>
+                          {formData.documents[doc.key as keyof typeof formData.documents] && (
+                            <div className="mt-2 text-sm text-green-600 flex items-center justify-center">
+                              <FileText className="h-4 w-4 mr-1" />
+                              File uploaded
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-blue-900 mb-2">Document Requirements:</h4>
+                      <ul className="text-sm text-blue-800 space-y-1">
+                        <li>• All documents must be clear and readable</li>
+                        <li>• Accepted formats: PDF, JPG, PNG, DOC, DOCX</li>
+                        <li>• Maximum file size: 5MB per document</li>
+                        <li>• Documents should be in English or officially translated</li>
+                      </ul>
+                    </div>
                   </div>
+                )
+              }
 
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-2">Next Steps:</h4>
-                    <ul className="text-sm text-blue-800 space-y-1">
-                      <li>• Your application will be reviewed within 2-3 business days</li>
-                      <li>• You'll receive an email confirmation shortly</li>
-                      <li>• If selected, we'll contact you for an interview</li>
-                      <li>• Our team will assist with visa and documentation process</li>
-                    </ul>
-                  </div>
+              {
+                currentStep === 3 && (
+                  <div className="space-y-6">
+                    <div>
+                      <Label htmlFor="previousJobs">Previous Work Experience</Label>
+                      <textarea
+                        id="previousJobs"
+                        rows={4}
+                        className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md"
+                        placeholder="Describe your previous work experience..."
+                        value={formData.experience.previousJobs}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          experience: { ...prev.experience, previousJobs: e.target.value }
+                        }))}
+                      />
+                    </div>
 
-                  <div className="flex items-start">
-                    <input type="checkbox" required className="mt-1 rounded border-gray-300" />
-                    <label className="ml-2 text-sm text-gray-600">
-                      I confirm that all information provided is accurate and I agree to the{' '}
-                      <Link to="/terms" className="text-blue-600 hover:text-blue-500">Terms of Service</Link>
-                    </label>
+                    <div>
+                      <Label htmlFor="skills">Skills & Qualifications</Label>
+                      <textarea
+                        id="skills"
+                        rows={3}
+                        className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md"
+                        placeholder="List your relevant skills and qualifications..."
+                        value={formData.experience.skills}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          experience: { ...prev.experience, skills: e.target.value }
+                        }))}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="languages">Languages Spoken</Label>
+                        <Input
+                          id="languages"
+                          placeholder="e.g., English (Fluent), French (Basic)"
+                          value={formData.experience.languages}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            experience: { ...prev.experience, languages: e.target.value }
+                          }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="workPreference">Preferred Work Location</Label>
+                        <select
+                          id="workPreference"
+                          className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md"
+                          value={formData.experience.workPreference}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            experience: { ...prev.experience, workPreference: e.target.value }
+                          }))}
+                        >
+                          <option value="">Select preference</option>
+                          <option value="canada">Canada</option>
+                          <option value="usa">USA</option>
+                          <option value="both">Both Canada and USA</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
+                )
+              }
+
+              {
+                currentStep === 4 && (
+                  <div className="space-y-6">
+                    <div className="bg-green-50 p-6 rounded-lg">
+                      <h3 className="font-semibold text-green-900 mb-4">Application Summary</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <strong>Name:</strong> {formData.personalInfo.firstName} {formData.personalInfo.lastName}
+                        </div>
+                        <div>
+                          <strong>Email:</strong> {formData.personalInfo.email}
+                        </div>
+                        <div>
+                          <strong>Phone:</strong> {formData.personalInfo.phone}
+                        </div>
+                        <div>
+                          <strong>Nationality:</strong> {formData.personalInfo.nationality}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <h4 className="font-medium mb-3">Documents Uploaded:</h4>
+                      <div className="space-y-2 text-sm">
+                        {Object.entries(formData.documents).map(([key, file]) => (
+                          <div key={key} className="flex items-center">
+                            <CheckCircle className={`h-4 w-4 mr-2 ${file ? 'text-green-500' : 'text-gray-300'}`} />
+                            <span className={file ? 'text-gray-900' : 'text-gray-500'}>
+                              {key.toUpperCase()}: {file ? 'Uploaded' : 'Not uploaded'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-blue-900 mb-2">Next Steps:</h4>
+                      <ul className="text-sm text-blue-800 space-y-1">
+                        <li>• Your application will be reviewed within 2-3 business days</li>
+                        <li>• You'll receive an email confirmation shortly</li>
+                        <li>• If selected, we'll contact you for an interview</li>
+                        <li>• Our team will assist with visa and documentation process</li>
+                      </ul>
+                    </div>
+
+                    <div className="flex items-start">
+                      <input type="checkbox" required className="mt-1 rounded border-gray-300" />
+                      <label className="ml-2 text-sm text-gray-600">
+                        I confirm that all information provided is accurate and I agree to the{' '}
+                        <Link to="/terms" className="text-blue-600 hover:text-blue-500">Terms of Service</Link>
+                      </label>
+                    </div>
+                  </div>
+                )
+              }
 
               <div className="flex justify-between mt-8 pt-6 border-t">
                 {currentStep > 1 && (
