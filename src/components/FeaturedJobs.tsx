@@ -1,8 +1,9 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Clock, DollarSign, Flag } from 'lucide-react';
+import { MapPin, Clock, DollarSign } from 'lucide-react';
 
 const FeaturedJobs = () => {
   const jobs = [
@@ -117,8 +118,8 @@ const FeaturedJobs = () => {
                 </div>
 
                 <div className="flex justify-end">
-                  <Button className="bg-blue-900 hover:bg-blue-800">
-                    Apply Now
+                  <Button className="bg-blue-900 hover:bg-blue-800" asChild>
+                    <Link to={`/apply?job=${job.id}`}>Apply Now</Link>
                   </Button>
                 </div>
               </CardContent>
@@ -127,8 +128,8 @@ const FeaturedJobs = () => {
         </div>
 
         <div className="text-center mt-10">
-          <Button size="lg" variant="outline" className="border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white">
-            View All Jobs
+          <Button size="lg" variant="outline" className="border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white" asChild>
+            <Link to="/jobs">View All Jobs</Link>
           </Button>
         </div>
       </div>

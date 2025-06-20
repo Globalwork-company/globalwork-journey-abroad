@@ -40,11 +40,8 @@ const Header = () => {
             </nav>
           </div>
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="outline" className="text-blue-900 border-blue-900" asChild>
-              <Link to="/signin">Sign In</Link>
-            </Button>
             <Button className="bg-blue-900 hover:bg-blue-800" asChild>
-              <Link to="/signup">Get Started</Link>
+              <Link to="/jobs">Browse Jobs</Link>
             </Button>
           </div>
           <div className="md:hidden">

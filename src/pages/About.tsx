@@ -82,6 +82,27 @@ const About = () => {
           </Card>
         </div>
 
+        {/* Company Information */}
+        <Card className="mb-16">
+          <CardContent className="p-8">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Company Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+              <div>
+                <h4 className="text-lg font-semibold text-blue-900 mb-2">Main Office</h4>
+                <p className="text-gray-600">California, USA</p>
+              </div>
+              <div>
+                <h4 className="text-lg font-semibold text-blue-900 mb-2">Contact Email</h4>
+                <p className="text-gray-600">globalworkpass@gmail.com</p>
+              </div>
+              <div>
+                <h4 className="text-lg font-semibold text-blue-900 mb-2">Phone Number</h4>
+                <p className="text-gray-600">+1 (210) 204-3122</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Our Story */}
         <Card className="mb-16">
           <CardContent className="p-8">

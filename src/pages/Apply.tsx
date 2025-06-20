@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -8,11 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, FileText, ArrowLeft, CheckCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const Apply = () => {
   const [searchParams] = useSearchParams();
   const jobId = searchParams.get('job');
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     personalInfo: {
       firstName: '',
@@ -54,10 +56,90 @@ const Apply = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const sendEmailNotification = async (applicationData: any) => {
+    // Create email content
+    const emailContent = `
+New Job Application Received - GlobalWork Pass
+
+Personal Information:
+- Name: ${applicationData.personalInfo.firstName} ${applicationData.personalInfo.lastName}
+- Email: ${applicationData.personalInfo.email}
+- Phone: ${applicationData.personalInfo.phone}
+- Date of Birth: ${applicationData.personalInfo.dateOfBirth}
+- Nationality: ${applicationData.personalInfo.nationality}
+- Current Location: ${applicationData.personalInfo.currentLocation}
+
+Experience & Skills:
+- Previous Jobs: ${applicationData.experience.previousJobs}
+- Skills: ${applicationData.experience.skills}
+- Languages: ${applicationData.experience.languages}
+- Work Preference: ${applicationData.experience.workPreference}
+
+Documents Uploaded:
+- CV/Resume: ${applicationData.documents.cv ? 'Yes' : 'No'}
+- Passport: ${applicationData.documents.passport ? 'Yes' : 'No'}
+- National ID: ${applicationData.documents.id ? 'Yes' : 'No'}
+- Education Certificates: ${applicationData.documents.education ? 'Yes' : 'No'}
+
+Job ID: ${jobId || 'Not specified'}
+Application Date: ${new Date().toLocaleString()}
+    `;
+
+    console.log('Application submitted - Email content:', emailContent);
+    
+    // Here you would typically send this to your email service
+    // For now, we'll just log it and show a success message
+    toast({
+      title: "Application Submitted Successfully!",
+      description: "Your application has been received. We'll contact you within 2-3 business days.",
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Application submitted:', formData);
-    // Handle application submission
+    setIsSubmitting(true);
+
+    try {
+      // Send email notification
+      await sendEmailNotification(formData);
+      
+      // Reset form
+      setFormData({
+        personalInfo: {
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
+          dateOfBirth: '',
+          nationality: '',
+          currentLocation: ''
+        },
+        documents: {
+          cv: null,
+          passport: null,
+          id: null,
+          education: null
+        },
+        experience: {
+          previousJobs: '',
+          skills: '',
+          languages: '',
+          workPreference: ''
+        }
+      });
+      
+      // Reset to first step
+      setCurrentStep(1);
+      
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "There was an error submitting your application. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const nextStep = () => {
@@ -401,6 +483,7 @@ const Apply = () => {
                     type="button"
                     variant="outline"
                     onClick={prevStep}
+                    disabled={isSubmitting}
                   >
                     Previous
                   </Button>
@@ -411,6 +494,7 @@ const Apply = () => {
                       type="button"
                       onClick={nextStep}
                       className="bg-blue-900 hover:bg-blue-800"
+                      disabled={isSubmitting}
                     >
                       Next Step
                     </Button>
@@ -418,8 +502,9 @@ const Apply = () => {
                     <Button
                       type="submit"
                       className="bg-green-600 hover:bg-green-700"
+                      disabled={isSubmitting}
                     >
-                      Submit Application
+                      {isSubmitting ? 'Submitting...' : 'Submit Application'}
                     </Button>
                   )}
                 </div>
