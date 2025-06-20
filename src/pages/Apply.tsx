@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -8,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, FileText, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import emailjs from '@emailjs/browser';
 
 const Apply = () => {
   const [searchParams] = useSearchParams();
@@ -57,8 +59,30 @@ const Apply = () => {
   };
 
   const sendEmailNotification = async (applicationData: any) => {
-    // Create email content
-    const emailContent = `
+    try {
+      // Initialize EmailJS (you'll need to replace these with your actual EmailJS credentials)
+      emailjs.init("YOUR_PUBLIC_KEY"); // Replace with your EmailJS public key
+      
+      const templateParams = {
+        to_email: 'globalworkpass@gmail.com',
+        from_name: `${applicationData.personalInfo.firstName} ${applicationData.personalInfo.lastName}`,
+        applicant_name: `${applicationData.personalInfo.firstName} ${applicationData.personalInfo.lastName}`,
+        applicant_email: applicationData.personalInfo.email,
+        applicant_phone: applicationData.personalInfo.phone,
+        date_of_birth: applicationData.personalInfo.dateOfBirth,
+        nationality: applicationData.personalInfo.nationality,
+        current_location: applicationData.personalInfo.currentLocation,
+        previous_jobs: applicationData.experience.previousJobs,
+        skills: applicationData.experience.skills,
+        languages: applicationData.experience.languages,
+        work_preference: applicationData.experience.workPreference,
+        documents_cv: applicationData.documents.cv ? 'Yes' : 'No',
+        documents_passport: applicationData.documents.passport ? 'Yes' : 'No',
+        documents_id: applicationData.documents.id ? 'Yes' : 'No',
+        documents_education: applicationData.documents.education ? 'Yes' : 'No',
+        job_id: jobId || 'Not specified',
+        application_date: new Date().toLocaleString(),
+        message: `
 New Job Application Received - GlobalWork Pass
 
 Personal Information:
@@ -83,16 +107,64 @@ Documents Uploaded:
 
 Job ID: ${jobId || 'Not specified'}
 Application Date: ${new Date().toLocaleString()}
-    `;
+        `
+      };
 
-    console.log('Application submitted - Email content:', emailContent);
-    
-    // Here you would typically send this to your email service
-    // For now, we'll just log it and show a success message
-    toast({
-      title: "Application Submitted Successfully!",
-      description: "Your application has been received. We'll contact you within 2-3 business days.",
-    });
+      const result = await emailjs.send(
+        'YOUR_SERVICE_ID', // Replace with your EmailJS service ID
+        'YOUR_TEMPLATE_ID', // Replace with your EmailJS template ID
+        templateParams
+      );
+
+      console.log('Email sent successfully:', result);
+      
+      toast({
+        title: "Application Submitted Successfully!",
+        description: "Your application has been sent to our team. We'll contact you within 2-3 business days.",
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Failed to send email:', error);
+      
+      // Fallback: Create mailto link with application details
+      const emailBody = `
+New Job Application - GlobalWork Pass
+
+Personal Information:
+- Name: ${applicationData.personalInfo.firstName} ${applicationData.personalInfo.lastName}
+- Email: ${applicationData.personalInfo.email}
+- Phone: ${applicationData.personalInfo.phone}
+- Date of Birth: ${applicationData.personalInfo.dateOfBirth}
+- Nationality: ${applicationData.personalInfo.nationality}
+- Current Location: ${applicationData.personalInfo.currentLocation}
+
+Experience & Skills:
+- Previous Jobs: ${applicationData.experience.previousJobs}
+- Skills: ${applicationData.experience.skills}
+- Languages: ${applicationData.experience.languages}
+- Work Preference: ${applicationData.experience.workPreference}
+
+Documents Status:
+- CV/Resume: ${applicationData.documents.cv ? 'Uploaded' : 'Not uploaded'}
+- Passport: ${applicationData.documents.passport ? 'Uploaded' : 'Not uploaded'}
+- National ID: ${applicationData.documents.id ? 'Uploaded' : 'Not uploaded'}
+- Education Certificates: ${applicationData.documents.education ? 'Uploaded' : 'Not uploaded'}
+
+Job ID: ${jobId || 'Not specified'}
+Application Date: ${new Date().toLocaleString()}
+      `;
+
+      const mailtoLink = `mailto:globalworkpass@gmail.com?subject=Job Application - ${applicationData.personalInfo.firstName} ${applicationData.personalInfo.lastName}&body=${encodeURIComponent(emailBody)}`;
+      window.open(mailtoLink, '_blank');
+      
+      toast({
+        title: "Email Client Opened",
+        description: "Please send the email from your email client to complete your application.",
+      });
+
+      return true;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,36 +172,37 @@ Application Date: ${new Date().toLocaleString()}
     setIsSubmitting(true);
 
     try {
-      // Send email notification
-      await sendEmailNotification(formData);
+      const success = await sendEmailNotification(formData);
       
-      // Reset form
-      setFormData({
-        personalInfo: {
-          firstName: '',
-          lastName: '',
-          email: '',
-          phone: '',
-          dateOfBirth: '',
-          nationality: '',
-          currentLocation: ''
-        },
-        documents: {
-          cv: null,
-          passport: null,
-          id: null,
-          education: null
-        },
-        experience: {
-          previousJobs: '',
-          skills: '',
-          languages: '',
-          workPreference: ''
-        }
-      });
-      
-      // Reset to first step
-      setCurrentStep(1);
+      if (success) {
+        // Reset form
+        setFormData({
+          personalInfo: {
+            firstName: '',
+            lastName: '',
+            email: '',
+            phone: '',
+            dateOfBirth: '',
+            nationality: '',
+            currentLocation: ''
+          },
+          documents: {
+            cv: null,
+            passport: null,
+            id: null,
+            education: null
+          },
+          experience: {
+            previousJobs: '',
+            skills: '',
+            languages: '',
+            workPreference: ''
+          }
+        });
+        
+        // Reset to first step
+        setCurrentStep(1);
+      }
       
     } catch (error) {
       toast({
