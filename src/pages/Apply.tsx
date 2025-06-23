@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import emailjs from '@emailjs/browser';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -70,7 +71,6 @@ const Apply = () => {
     setIsSubmitting(true);
 
     try {
-      // Create comprehensive email body with all application details
       const applicationDate = new Date().toLocaleString();
       const applicantName = `${formData.personalInfo.firstName} ${formData.personalInfo.lastName}`;
       
@@ -82,59 +82,42 @@ const Apply = () => {
         education: formData.documents.education ? `${formData.documents.education.name} (${(formData.documents.education.size / 1024).toFixed(2)} KB)` : 'Not uploaded'
       };
 
-      const emailSubject = `New Job Application - ${applicantName} (Job ID: ${jobId || 'N/A'})`;
-      
-      const emailBody = `
-NEW JOB APPLICATION - GLOBALWORK PASS
-=====================================
+      // Send email using EmailJS
+      const templateParams = {
+        applicant_name: applicantName,
+        applicant_email: formData.personalInfo.email,
+        applicant_phone: formData.personalInfo.phone,
+        date_of_birth: formData.personalInfo.dateOfBirth,
+        nationality: formData.personalInfo.nationality,
+        current_location: formData.personalInfo.currentLocation,
+        previous_jobs: formData.experience.previousJobs || 'Not provided',
+        skills: formData.experience.skills || 'Not provided',
+        languages: formData.experience.languages || 'Not provided',
+        work_preference: formData.experience.workPreference || 'Not specified',
+        documents_cv: fileInfo.cv,
+        documents_passport: fileInfo.passport,
+        documents_id: fileInfo.id,
+        documents_education: fileInfo.education,
+        job_id: jobId || 'Not specified',
+        application_date: applicationDate,
+        to_email: 'globalworkpass@gmail.com'
+      };
 
-APPLICATION DETAILS:
-- Job ID: ${jobId || 'Not specified'}
-- Application Date: ${applicationDate}
-- Applicant: ${applicantName}
+      console.log('Sending email with params:', templateParams);
 
-PERSONAL INFORMATION:
-- Name: ${applicantName}
-- Email: ${formData.personalInfo.email}
-- Phone: ${formData.personalInfo.phone}
-- Date of Birth: ${formData.personalInfo.dateOfBirth}
-- Nationality: ${formData.personalInfo.nationality}
-- Current Location: ${formData.personalInfo.currentLocation}
+      await emailjs.send(
+        'service_6elkq6u',
+        'template_0i775tg',
+        templateParams,
+        'BVScmUn287nNyRyZq'
+      );
 
-EXPERIENCE & SKILLS:
-- Previous Jobs: ${formData.experience.previousJobs || 'Not provided'}
-- Skills: ${formData.experience.skills || 'Not provided'}
-- Languages: ${formData.experience.languages || 'Not provided'}
-- Work Preference: ${formData.experience.workPreference || 'Not specified'}
-
-DOCUMENTS SUBMITTED:
-- CV/Resume: ${fileInfo.cv}
-- Passport Copy: ${fileInfo.passport}
-- National ID: ${fileInfo.id}
-- Education Certificates: ${fileInfo.education}
-
-NEXT STEPS:
-Please review this application and contact the applicant at ${formData.personalInfo.email} if suitable for the position.
-
----
-This application was submitted through GlobalWork Pass website.
-For questions, contact: globalworkpass@gmail.com
-      `;
-
-      // Create mailto link with all the details
-      const mailtoLink = `mailto:globalworkpass@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-      
-      // Open the user's email client
-      window.open(mailtoLink, '_blank');
-      
-      // Show success message
       toast({
         title: "Application Submitted Successfully!",
-        description: "Your email client has opened with the application details. Please send the email to complete your application.",
+        description: "Your application has been sent to GlobalWork Pass. We'll review it and get back to you soon.",
       });
 
-      // Log application details to console for debugging
-      console.log('Application submitted:', {
+      console.log('Application submitted successfully:', {
         personalInfo: formData.personalInfo,
         experience: formData.experience,
         documents: {
@@ -147,7 +130,7 @@ For questions, contact: globalworkpass@gmail.com
         submissionDate: applicationDate
       });
 
-      // Reset form after submission
+      // Reset form after successful submission
       setFormData({
         personalInfo: {
           firstName: '',
@@ -172,14 +155,13 @@ For questions, contact: globalworkpass@gmail.com
         }
       });
       
-      // Reset to first step
       setCurrentStep(1);
 
     } catch (error) {
-      console.error('Error processing application:', error);
+      console.error('Error sending email:', error);
       toast({
         title: "Error",
-        description: "There was an error processing your application. Please try again.",
+        description: "There was an error submitting your application. Please try again.",
         variant: "destructive",
       });
     } finally {
