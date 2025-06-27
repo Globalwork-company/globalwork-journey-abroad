@@ -1,6 +1,5 @@
-
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,11 +8,21 @@ import { Input } from '@/components/ui/input';
 import { MapPin, Clock, DollarSign, Filter, Search } from 'lucide-react';
 
 const Jobs = () => {
+  const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
+  // Handle URL parameters for category filtering
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+    }
+  }, [searchParams]);
+
   const jobs = [
+    // Canada Jobs
     {
       id: 1,
       title: "Farm Worker - Seasonal",
@@ -38,6 +47,30 @@ const Jobs = () => {
       benefits: ["Free Accommodation", "Family Benefits", "Path to PR"]
     },
     {
+      id: 5,
+      title: "Construction Worker",
+      company: "BuildRight Corp",
+      location: "Alberta, Canada",
+      salary: "CAD 22/hour",
+      duration: "18-Month Contract",
+      country: "🇨🇦",
+      category: "construction",
+      benefits: ["Safety Training", "Health Insurance", "Overtime Available"]
+    },
+    {
+      id: 6,
+      title: "Truck Driver",
+      company: "TransCanada Logistics",
+      location: "British Columbia, Canada",
+      salary: "CAD 25/hour",
+      duration: "Permanent",
+      country: "🇨🇦",
+      category: "transport",
+      benefits: ["Company Vehicle", "Fuel Allowance", "Insurance Coverage"]
+    },
+    
+    // USA Jobs
+    {
       id: 3,
       title: "Warehouse Associate",
       company: "Logistics Pro Inc",
@@ -61,26 +94,227 @@ const Jobs = () => {
       urgent: true
     },
     {
-      id: 5,
-      title: "Construction Worker",
-      company: "BuildRight Corp",
-      location: "Alberta, Canada",
-      salary: "CAD 22/hour",
-      duration: "18-Month Contract",
-      country: "🇨🇦",
-      category: "construction",
-      benefits: ["Safety Training", "Health Insurance", "Overtime Available"]
+      id: 7,
+      title: "Farm Supervisor",
+      company: "Golden Valley Farms",
+      location: "California, USA",
+      salary: "USD 20/hour",
+      duration: "2-Year Contract",
+      country: "🇺🇸",
+      category: "agriculture",
+      benefits: ["Management Training", "Health Benefits", "Visa Support"]
+    },
+    
+    // Kuwait Jobs
+    {
+      id: 8,
+      title: "Hotel Manager",
+      company: "Kuwait Luxury Hotels",
+      location: "Kuwait City, Kuwait",
+      salary: "KWD 800/month",
+      duration: "2-Year Contract",
+      country: "🇰🇼",
+      category: "hospitality",
+      benefits: ["Free Accommodation", "Transportation", "Annual Leave"]
     },
     {
-      id: 6,
-      title: "Truck Driver",
-      company: "TransCanada Logistics",
-      location: "British Columbia, Canada",
-      salary: "CAD 25/hour",
-      duration: "Permanent",
-      country: "🇨🇦",
+      id: 9,
+      title: "Construction Foreman",
+      company: "Gulf Construction Co",
+      location: "Kuwait City, Kuwait",
+      salary: "KWD 600/month",
+      duration: "3-Year Contract",
+      country: "🇰🇼",
+      category: "construction",
+      benefits: ["Housing Allowance", "Medical Insurance", "Overtime Pay"]
+    },
+    {
+      id: 10,
+      title: "Warehouse Supervisor",
+      company: "Kuwait Logistics",
+      location: "Shuwaikh, Kuwait",
+      salary: "KWD 550/month",
+      duration: "2-Year Contract",
+      country: "🇰🇼",
+      category: "warehouse",
+      benefits: ["Transportation", "Health Insurance", "Annual Bonus"]
+    },
+    
+    // Dubai Jobs
+    {
+      id: 11,
+      title: "Hotel Receptionist",
+      company: "Emirates Grand Hotel",
+      location: "Dubai, UAE",
+      salary: "AED 4,500/month",
+      duration: "2-Year Contract",
+      country: "🇦🇪",
+      category: "hospitality",
+      benefits: ["Visa Processing", "Accommodation", "Medical Insurance"],
+      urgent: true
+    },
+    {
+      id: 12,
+      title: "Delivery Driver",
+      company: "Dubai Express Delivery",
+      location: "Dubai, UAE",
+      salary: "AED 3,200/month",
+      duration: "1-Year Contract",
+      country: "🇦🇪",
       category: "transport",
-      benefits: ["Company Vehicle", "Fuel Allowance", "Insurance Coverage"]
+      benefits: ["Company Vehicle", "Fuel Allowance", "Commission"]
+    },
+    {
+      id: 13,
+      title: "Caregiver",
+      company: "Premium Care Services",
+      location: "Dubai, UAE",
+      salary: "AED 3,800/month",
+      duration: "2-Year Contract",
+      country: "🇦🇪",
+      category: "caregiving",
+      benefits: ["Free Accommodation", "Medical Coverage", "Annual Leave"]
+    },
+    
+    // Qatar Jobs
+    {
+      id: 14,
+      title: "Construction Worker",
+      company: "Doha Building Group",
+      location: "Doha, Qatar",
+      salary: "QAR 2,500/month",
+      duration: "2-Year Contract",
+      country: "🇶🇦",
+      category: "construction",
+      benefits: ["Free Housing", "Transportation", "Overtime Available"]
+    },
+    {
+      id: 15,
+      title: "Restaurant Server",
+      company: "Qatar Fine Dining",
+      location: "Doha, Qatar",
+      salary: "QAR 2,200/month + Tips",
+      duration: "18-Month Contract",
+      country: "🇶🇦",
+      category: "hospitality",
+      benefits: ["Staff Meals", "Tips", "Health Insurance"]
+    },
+    {
+      id: 16,
+      title: "Warehouse Worker",
+      company: "Qatar Logistics Hub",
+      location: "Doha, Qatar",
+      salary: "QAR 2,000/month",
+      duration: "2-Year Contract",
+      country: "🇶🇦",
+      category: "warehouse",
+      benefits: ["Transportation", "Overtime Pay", "Annual Leave"]
+    },
+    
+    // Netherlands Jobs
+    {
+      id: 17,
+      title: "Agricultural Worker",
+      company: "Dutch Greenhouses Ltd",
+      location: "Amsterdam, Netherlands",
+      salary: "EUR 12/hour",
+      duration: "Seasonal (8 months)",
+      country: "🇳🇱",
+      category: "agriculture",
+      benefits: ["EU Work Permit", "Housing Assistance", "Training"]
+    },
+    {
+      id: 18,
+      title: "Hotel Cleaner",
+      company: "Amsterdam Hotels Group",
+      location: "Amsterdam, Netherlands",
+      salary: "EUR 11/hour",
+      duration: "1-Year Contract",
+      country: "🇳🇱",
+      category: "hospitality",
+      benefits: ["Work Permit Support", "Language Training", "Health Insurance"]
+    },
+    {
+      id: 19,
+      title: "Elderly Caregiver",
+      company: "Netherlands Care Services",
+      location: "Rotterdam, Netherlands",
+      salary: "EUR 2,400/month",
+      duration: "Permanent",
+      country: "🇳🇱",
+      category: "caregiving",
+      benefits: ["EU Residence", "Dutch Language Course", "Full Benefits"]
+    },
+    
+    // UK Jobs
+    {
+      id: 20,
+      title: "Farm Worker",
+      company: "British Agriculture Co",
+      location: "Yorkshire, UK",
+      salary: "GBP 10.50/hour",
+      duration: "Seasonal (6 months)",
+      country: "🇬🇧",
+      category: "agriculture",
+      benefits: ["Visa Sponsorship", "Accommodation", "Transport"]
+    },
+    {
+      id: 21,
+      title: "Care Assistant",
+      company: "UK Elder Care",
+      location: "London, UK",
+      salary: "GBP 11/hour",
+      duration: "Permanent",
+      country: "🇬🇧",
+      category: "caregiving",
+      benefits: ["NHS Benefits", "Training Provided", "Career Progression"]
+    },
+    {
+      id: 22,
+      title: "Warehouse Operative",
+      company: "British Logistics",
+      location: "Manchester, UK",
+      salary: "GBP 10/hour",
+      duration: "12-Month Contract",
+      country: "🇬🇧",
+      category: "warehouse",
+      benefits: ["Overtime Available", "Health Benefits", "Training"]
+    },
+    
+    // Australia Jobs
+    {
+      id: 23,
+      title: "Fruit Picker",
+      company: "Aussie Orchards",
+      location: "Queensland, Australia",
+      salary: "AUD 25/hour",
+      duration: "Seasonal (4 months)",
+      country: "🇦🇺",
+      category: "agriculture",
+      benefits: ["Working Holiday Visa", "Accommodation", "Transport"],
+      urgent: true
+    },
+    {
+      id: 24,
+      title: "Aged Care Worker",
+      company: "Australian Care Services",
+      location: "Sydney, Australia",
+      salary: "AUD 28/hour",
+      duration: "Permanent",
+      country: "🇦🇺",
+      category: "caregiving",
+      benefits: ["Visa Sponsorship", "Superannuation", "Health Insurance"]
+    },
+    {
+      id: 25,
+      title: "Construction Laborer",
+      company: "Sydney Build Corp",
+      location: "Sydney, Australia",
+      salary: "AUD 30/hour",
+      duration: "18-Month Contract",
+      country: "🇦🇺",
+      category: "construction",
+      benefits: ["Safety Training", "High Wages", "Overtime Available"]
     }
   ];
 
@@ -90,7 +324,13 @@ const Jobs = () => {
                          job.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCountry = selectedCountry === 'all' || 
                           (selectedCountry === 'canada' && job.country === '🇨🇦') ||
-                          (selectedCountry === 'usa' && job.country === '🇺🇸');
+                          (selectedCountry === 'usa' && job.country === '🇺🇸') ||
+                          (selectedCountry === 'kuwait' && job.country === '🇰🇼') ||
+                          (selectedCountry === 'uae' && job.country === '🇦🇪') ||
+                          (selectedCountry === 'qatar' && job.country === '🇶🇦') ||
+                          (selectedCountry === 'netherlands' && job.country === '🇳🇱') ||
+                          (selectedCountry === 'uk' && job.country === '🇬🇧') ||
+                          (selectedCountry === 'australia' && job.country === '🇦🇺');
     const matchesCategory = selectedCategory === 'all' || job.category === selectedCategory;
     
     return matchesSearch && matchesCountry && matchesCategory;
@@ -126,6 +366,12 @@ const Jobs = () => {
               <option value="all">All Countries</option>
               <option value="canada">Canada</option>
               <option value="usa">USA</option>
+              <option value="kuwait">Kuwait</option>
+              <option value="uae">UAE (Dubai)</option>
+              <option value="qatar">Qatar</option>
+              <option value="netherlands">Netherlands</option>
+              <option value="uk">United Kingdom</option>
+              <option value="australia">Australia</option>
             </select>
             <select
               value={selectedCategory}
@@ -133,12 +379,12 @@ const Jobs = () => {
               className="border border-gray-300 rounded-md px-3 py-2"
             >
               <option value="all">All Categories</option>
-              <option value="agriculture">Agriculture</option>
+              <option value="agriculture">Agriculture & Farming</option>
               <option value="caregiving">Caregiving</option>
               <option value="warehouse">Warehouse</option>
               <option value="hospitality">Hospitality</option>
               <option value="construction">Construction</option>
-              <option value="transport">Transport</option>
+              <option value="transport">Driving & Transport</option>
             </select>
             <Button className="bg-blue-900 hover:bg-blue-800">
               <Filter className="h-4 w-4 mr-2" />

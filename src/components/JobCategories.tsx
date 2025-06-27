@@ -11,7 +11,7 @@ const JobCategories = () => {
       icon: <Building className="h-8 w-8" />,
       title: "Agriculture & Farming",
       jobs: "45+ Jobs",
-      salary: "CAD 16-22/hr",
+      salary: "CAD 16-30/hr",
       popular: true,
       category: "agriculture"
     },
@@ -19,7 +19,7 @@ const JobCategories = () => {
       icon: <Coffee className="h-8 w-8" />,
       title: "Hospitality",
       jobs: "32+ Jobs",
-      salary: "USD 14-18/hr",
+      salary: "USD 14-20/hr",
       category: "hospitality"
     },
     {
@@ -33,21 +33,21 @@ const JobCategories = () => {
       icon: <Users className="h-8 w-8" />,
       title: "Caregiving",
       jobs: "24+ Jobs",
-      salary: "CAD 2500-3500/mo",
+      salary: "CAD 2400-3800/mo",
       category: "caregiving"
     },
     {
       icon: <Wrench className="h-8 w-8" />,
       title: "Construction",
       jobs: "38+ Jobs",
-      salary: "USD 16-22/hr",
+      salary: "USD 16-30/hr",
       category: "construction"
     },
     {
       icon: <Home className="h-8 w-8" />,
       title: "Warehouse",
       jobs: "41+ Jobs",
-      salary: "USD 15-20/hr",
+      salary: "USD 15-25/hr",
       category: "warehouse"
     }
   ];
@@ -60,7 +60,7 @@ const JobCategories = () => {
             Popular Job Categories
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Explore high-demand opportunities across Canada and USA with competitive salaries and benefits
+            Explore high-demand opportunities across multiple countries with competitive salaries and benefits
           </p>
         </div>
 
