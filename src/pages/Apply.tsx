@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import emailjs from '@emailjs/browser';
 import Header from '@/components/Header';
@@ -16,6 +16,7 @@ const Apply = () => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [emailError, setEmailError] = useState('');
   const [formData, setFormData] = useState({
     personalInfo: {
       firstName: '',
@@ -40,12 +41,36 @@ const Apply = () => {
     }
   });
 
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const steps = [
     { number: 1, title: 'Personal Information', icon: '👤' },
     { number: 2, title: 'Document Upload', icon: '📄' },
     { number: 3, title: 'Experience & Skills', icon: '💼' },
     { number: 4, title: 'Review & Submit', icon: '✅' }
   ];
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const email = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      personalInfo: { ...prev.personalInfo, email }
+    }));
+
+    if (email && !validateEmail(email)) {
+      setEmailError('Please enter a valid email address');
+    } else {
+      setEmailError('');
+    }
+  };
 
   const handleFileUpload = (field: string, file: File | null) => {
     setFormData(prev => ({
@@ -170,11 +195,38 @@ const Apply = () => {
   };
 
   const nextStep = () => {
-    if (currentStep < 4) setCurrentStep(currentStep + 1);
+    // Validate current step before proceeding
+    if (currentStep === 1) {
+      const { firstName, lastName, email, phone } = formData.personalInfo;
+      if (!firstName || !lastName || !email || !phone) {
+        toast({
+          title: "Missing Information",
+          description: "Please fill in all required fields before proceeding.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!validateEmail(email)) {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
+    if (currentStep < 4) {
+      setCurrentStep(currentStep + 1);
+      window.scrollTo(0, 0); // Scroll to top when changing steps
+    }
   };
 
   const prevStep = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1);
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+      window.scrollTo(0, 0); // Scroll to top when changing steps
+    }
   };
 
   return (
@@ -241,7 +293,7 @@ const Apply = () => {
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="firstName">First Name</Label>
+                        <Label htmlFor="firstName">First Name <span className="text-red-500">*</span></Label>
                         <Input
                           id="firstName"
                           required
@@ -253,7 +305,7 @@ const Apply = () => {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="lastName">Last Name</Label>
+                        <Label htmlFor="lastName">Last Name <span className="text-red-500">*</span></Label>
                         <Input
                           id="lastName"
                           required
@@ -268,20 +320,21 @@ const Apply = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="email">Email Address</Label>
+                        <Label htmlFor="email">Email Address <span className="text-red-500">*</span></Label>
                         <Input
                           id="email"
                           type="email"
                           required
                           value={formData.personalInfo.email}
-                          onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            personalInfo: { ...prev.personalInfo, email: e.target.value }
-                          }))}
+                          onChange={handleEmailChange}
+                          className={emailError ? 'border-red-500' : ''}
                         />
+                        {emailError && (
+                          <p className="text-red-500 text-sm mt-1">{emailError}</p>
+                        )}
                       </div>
                       <div>
-                        <Label htmlFor="phone">Phone Number</Label>
+                        <Label htmlFor="phone">Phone Number <span className="text-red-500">*</span></Label>
                         <Input
                           id="phone"
                           type="tel"
@@ -301,7 +354,6 @@ const Apply = () => {
                         <Input
                           id="dateOfBirth"
                           type="date"
-                          required
                           value={formData.personalInfo.dateOfBirth}
                           onChange={(e) => setFormData(prev => ({
                             ...prev,
@@ -313,7 +365,6 @@ const Apply = () => {
                         <Label htmlFor="nationality">Nationality</Label>
                         <Input
                           id="nationality"
-                          required
                           value={formData.personalInfo.nationality}
                           onChange={(e) => setFormData(prev => ({
                             ...prev,
@@ -325,7 +376,6 @@ const Apply = () => {
                         <Label htmlFor="currentLocation">Current Location</Label>
                         <Input
                           id="currentLocation"
-                          required
                           value={formData.personalInfo.currentLocation}
                           onChange={(e) => setFormData(prev => ({
                             ...prev,
